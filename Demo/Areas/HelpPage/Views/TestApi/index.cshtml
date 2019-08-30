@@ -1,0 +1,169 @@
+﻿
+@{
+    ViewBag.Title = "测试API接口";
+}
+<style>
+    .form-control {
+        max-width: 500px;
+    }
+
+    #result {
+        height: 580px;
+        overflow-y: auto;
+    }
+</style>
+<div id="body" class="help-page">
+    <section class="content-wrapper main-content">
+        <div class="panel panel-default" style="margin-top:20px">
+            <div class="panel-heading">@ViewBag.Title</div>
+            <div class="panel-body">
+                <div class="col-lg-6">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label for="path" class="col-lg-2">URL</label>
+                            <input type="text" class="form-control col-lg-10" id="path" placeholder="请求路径">
+                        </div>
+                        <div class="form-group">
+                            <label for="data" class="col-lg-2">请求数据</label>
+                            <textarea type="text" class="form-control col-lg-10" id="data" rows="10" placeholder='请求数据:GET(a=1&b=2) POST({"a":1,"b":2})'></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="method" class="col-lg-2">请求方式</label>
+                            <select id="method" class="form-control col-lg-10">
+                                <option value="GET" selected="selected">GET</option>
+                                <option value="POST">POST</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="type" class="col-lg-2">请求</label>
+                            <select id="type" class="form-control col-lg-10">
+                                <option value="0" selected="selected">注册会员</option>
+                                <option value="1" selected="selected">铜牌会员</option>
+                                <option value="2" selected="selected">银牌会员</option>
+                                <option value="3" selected="selected">金牌会员</option>
+                                <option value="4" selected="selected">钻石会员</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="appid" class="col-lg-2">AppId</label>
+                            <input type="text" class="form-control col-lg-10" id="appid" placeholder="appid">
+                        </div>
+                        <div class="form-group">
+                            <label for="appkey" class="col-lg-2">AppKey</label>
+                            <input type="text" class="form-control col-lg-10" id="appkey" placeholder="appkey">
+                        </div>
+                        <div class="form-group">
+                            <div class="col-lg-10 text-center">
+                                <button type="button" id="btn_submit" class="btn btn-default btn-lg">提交</button>
+                                <button type="button" class="btn btn-default btn-lg" onclick="window.close()">关闭</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-6">
+                    <p>结果：</p>
+                    <pre class="wrapped" id="result"></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+@section scripts{
+    <script src="~/Scripts/crypto-js.js"></script>
+    <script>
+		$(function () {
+			var getQueryString = function (name) {
+				var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+				var r = window.location.search.substr(1).match(reg);
+				if (r != null) {
+					return unescape(r[2]);
+				}
+				return null;
+			}
+
+			var hmacSHA256 = function (inputStr, key) {
+				var hash = CryptoJS.HmacSHA256(inputStr, key);
+				return CryptoJS.enc.Base64.stringify(hash);
+			}
+
+			var sign = function (req, appid, appkey) {
+				var url = req.url;
+				//请求类型
+				var method = req.type;
+				//时间戳
+				var ts = Math.round(new Date().getTime() / 1000).toString();
+				//随机字符串
+				var nonce = Math.random().toString(36).substr(2, 6);
+				//域名
+				var sanitizedHost = url.substring(url.indexOf("//") + 2, url.lastIndexOf(":"));
+				//端口
+				var port = url.substring(url.lastIndexOf(":") + 1, url.indexOf("/api"));
+				if (isNaN(port)) port = 80;
+				//path and query
+				var path = url.substring(url.indexOf("/api"));
+				//拼接加密字符串
+				var arr = [];
+				arr.push("hawk.1.header");
+				arr.push("\n");
+				arr.push(ts);
+				arr.push("\n");
+				arr.push(nonce);
+				arr.push("\n");
+				arr.push(method.toLocaleUpperCase());
+				arr.push("\n");
+				arr.push(path);
+				arr.push("\n");
+				arr.push(sanitizedHost);
+				arr.push("\n");
+				arr.push(port);
+				arr.push("\n");
+				arr.push("\n");
+				arr.push("\n");
+				var str = arr.join("");
+				var mac = hmacSHA256(str, appkey);
+				var signStr = 'Hawk id="' + appid + '",ts="' + ts + '",nonce="' + nonce + '",mac="' + mac + '"';
+				return signStr;
+			}
+
+			var init = function () {
+				$("#method").val(getQueryString("method"));
+				var path = getQueryString("path").split("?");
+				$("#path").val(path[0]);
+				if (path.length > 1)
+					$("#data").val(path[1]);
+				$("#appid").val(localStorage.getItem("appid") || "");
+				$("#appkey").val(localStorage.getItem("appkey") || "");
+			}
+
+			$("#btn_submit").on("click", function () {
+				var method = $("#method").val();
+				var url = location.origin + "/" + $("#path").val();
+				var data = $("#data").val();
+				$("#result").text("请求中...").show();
+				$.ajax({
+					url: url,
+					type: method,
+					data: data,
+					dataType: "json",
+					contentType: "application/json",
+					timeout: 5000,
+					beforeSend: function (XMLHttpRequest) {
+						var appid = $("#appid").val();
+						var appkey = $("#appkey").val();
+						localStorage.setItem("appid", appid);
+						localStorage.setItem("appkey", appkey);
+						XMLHttpRequest.setRequestHeader("site", $("#site").val());
+						XMLHttpRequest.setRequestHeader("Authorization", sign(this, appid, appkey));
+					},
+					success: function (res) {
+						$("#result").text(JSON.stringify(res, null, 4));
+					},
+					error: function (res) {
+						$("#result").text(res.statusText);
+					}
+				});
+			});
+			init();
+		});
+    </script>
+}
