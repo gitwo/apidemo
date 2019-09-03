@@ -80,7 +80,7 @@ namespace Demo.App_Start.Handler
 			{
 				if (!CatchStatus)
 				{
-					var keys = RedisHelper.Instance.GetServer(RedisHelper.Instance.GetEndPoints().FirstOrDefault()).Keys(pattern: "CoreAPI:Throttle:*");
+					var keys = RedisHelper.Instance.GetServer(RedisHelper.Instance.GetEndPoints().FirstOrDefault()).Keys(pattern: "Throttle:*");
 					RedisHelper.RemoveKeys(keys.ToArray());
 				}
 			}
