@@ -196,6 +196,7 @@
     <Compile Include="App_Start\Handler\CustomErrorMessageDelegatingHandler.cs" />
     <Compile Include="App_Start\Handler\HawkCredentialRepository.cs" />
     <Compile Include="App_Start\Handler\ThrottleRepository.cs" />
+    <Compile Include="App_Start\RegisterSomeByRelection.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Areas\HelpPage\ApiDescriptionExtensions.cs" />
