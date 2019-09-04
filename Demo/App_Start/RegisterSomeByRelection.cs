@@ -16,7 +16,7 @@ namespace Demo.App_Start
 	public static class RegisterSomeByRelection
 	{
 		/// <summary>
-		/// 此扩展方法
+		/// 此扩展方法，用于调用引用的dll，使用其中的route
 		/// </summary>
 		/// <param name="httpConfiguration"></param>
 		public static void RegisterAssembly(this HttpConfiguration httpConfiguration)
