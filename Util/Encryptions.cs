@@ -8,7 +8,7 @@ namespace Util
 	/// 只实现类DES加解密部分
 	/// </summary>
 	public class Encryptions
-    {
+	{
 		#region ========DES加密======== 
 
 		/// <summary>
@@ -33,8 +33,8 @@ namespace Util
 			inputByteArray = Encoding.Default.GetBytes(Text);
 			//des.Key = Encoding.ASCII.GetBytes(System.Web.Security.FormsAuthentication.HashPasswordForStoringInConfigFile(sKey, "md5").Substring(0, 8));
 			//des.IV = Encoding.ASCII.GetBytes(System.Web.Security.FormsAuthentication.HashPasswordForStoringInConfigFile(sKey, "md5").Substring(0, 8));
-			des.Key = Encoding.ASCII.GetBytes(Md5Encryptor16(sKey).Substring(0, 8));
-			des.IV = Encoding.ASCII.GetBytes(Md5Encryptor16(sKey).Substring(0, 8));
+			des.Key = Encoding.UTF8.GetBytes(Md5Encryptor16(sKey).Substring(0, 8));
+			des.IV = Encoding.UTF8.GetBytes(Md5Encryptor16(sKey).Substring(0, 8));
 			System.IO.MemoryStream ms = new System.IO.MemoryStream();
 			CryptoStream cs = new CryptoStream(ms, des.CreateEncryptor(), CryptoStreamMode.Write);
 			cs.Write(inputByteArray, 0, inputByteArray.Length);
@@ -83,8 +83,8 @@ namespace Util
 			}
 			//des.Key = ASCIIEncoding.ASCII.GetBytes(System.Web.Security.FormsAuthentication.HashPasswordForStoringInConfigFile(sKey, "md5").Substring(0, 8));
 			//des.IV = ASCIIEncoding.ASCII.GetBytes(System.Web.Security.FormsAuthentication.HashPasswordForStoringInConfigFile(sKey, "md5").Substring(0, 8));
-			des.Key = Encoding.ASCII.GetBytes(Md5Encryptor16(sKey).Substring(0, 8));
-			des.IV = Encoding.ASCII.GetBytes(Md5Encryptor16(sKey).Substring(0, 8));
+			des.Key = Encoding.UTF8.GetBytes(Md5Encryptor16(sKey).Substring(0, 8));
+			des.IV = Encoding.UTF8.GetBytes(Md5Encryptor16(sKey).Substring(0, 8));
 			System.IO.MemoryStream ms = new System.IO.MemoryStream();
 			CryptoStream cs = new CryptoStream(ms, des.CreateDecryptor(), CryptoStreamMode.Write);
 			cs.Write(inputByteArray, 0, inputByteArray.Length);
@@ -144,11 +144,13 @@ namespace Util
 		public static string Md5Encryptor32(string str, bool lower = true)
 		{
 			string password = "";
-			MD5 md5 = MD5.Create();
-			byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
-			foreach (byte b in s)
-				password += b.ToString("X2");
-			return lower ? password.ToLower() : password.ToUpper();
+			using (MD5 md5 = MD5.Create())
+			{
+				byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
+				foreach (byte b in s)
+					password += b.ToString("X2");
+				return lower ? password.ToLower() : password.ToUpper();
+			}
 		}
 
 		/// <summary>
@@ -160,10 +162,12 @@ namespace Util
 		public static string Md5Encryptor16(string str, bool lower = true)
 		{
 			string password = "";
-			MD5 md5 = MD5.Create();
-			byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
-			password = BitConverter.ToString(s, 4, 8).Replace("-", "");
-			return lower ? password.ToLower() : password.ToUpper();
+			using (MD5 md5 = MD5.Create())
+			{
+				byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
+				password = BitConverter.ToString(s, 4, 8).Replace("-", "");
+				return lower ? password.ToLower() : password.ToUpper();
+			}
 		}
 
 		/// <summary>
@@ -183,7 +187,76 @@ namespace Util
 				return Convert.ToBase64String(hashmessage);
 			}
 		}
+
+		#endregion
+
+		#region ========AES======== CBC模式 http://www.361way.com/aes/5830.html
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="str"></param>
+		/// <param name="key"></param>
+		/// <param name="iv"></param>
+		/// <returns></returns>
+		public static string AesEncryption(string str, string key, string iv = "ABCDEFG")
+		{
+			if (string.IsNullOrEmpty(str))
+			{
+				return null;
+			}
+
+			byte[] strs = Encoding.UTF8.GetBytes(str);
+			byte[] keys = Encoding.UTF8.GetBytes(key);
+			byte[] ivs = Encoding.UTF8.GetBytes(iv);
+
+			using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
+			{
+				aes.Mode = CipherMode.CBC;
+				aes.Padding = PaddingMode.PKCS7;
+				aes.Key = keys;
+				aes.IV = ivs;
+
+				byte[] results = aes.CreateEncryptor().TransformFinalBlock(strs, 0, strs.Length);
+				return Convert.ToBase64String(results);
+			}
+
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="str"></param>
+		/// <param name="key"></param>
+		/// <param name="iv"></param>
+		/// <returns></returns>
+		public static string AesDecryption(string str, string key, string iv = "ABCDEFG")
+		{
+			if (string.IsNullOrEmpty(str))
+			{
+				return null;
+			}
+
+			byte[] strs = Encoding.UTF8.GetBytes(str);
+			byte[] keys = Encoding.UTF8.GetBytes(key);
+			byte[] ivs = Encoding.UTF8.GetBytes(iv);
+
+			using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
+			{
+				aes.Mode = CipherMode.CBC;
+				aes.Padding = PaddingMode.PKCS7;
+				aes.Key = keys;
+				aes.IV = ivs;
+
+				byte[] results = aes.CreateDecryptor().TransformFinalBlock(strs, 0, strs.Length);
+				return Encoding.UTF8.GetString(results);
+			}
+
+		}
+
+
+
+		#endregion
 	}
-	#endregion
 }
 

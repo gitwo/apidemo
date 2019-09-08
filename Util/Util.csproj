@@ -60,9 +60,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RedisHelper.cs" />
     <Compile Include="RegexUtil.cs" />
+    <Compile Include="ValidateHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Model\Model.csproj">
+      <Project>{DBF7952C-3D7E-458F-B1F9-7163BFDF1F04}</Project>
+      <Name>Model</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

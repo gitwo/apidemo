@@ -14,5 +14,10 @@
 		/// 是否加密连接配置
 		/// </summary>
 		public const string APPLICATION_CON_ENCRYPT = "ConStringEncrypt";
+		/// <summary>
+		/// 签名参数
+		/// </summary>
+		public const string SIGNATURE_PARA = "ApiSignature";
+
 	}
 }
