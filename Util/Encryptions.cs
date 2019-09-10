@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -193,20 +194,20 @@ namespace Util
 		#region ========AES======== CBC模式 http://www.361way.com/aes/5830.html
 
 		/// <summary>
-		/// 
+		/// AES密文 https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.aes?redirectedfrom=MSDN&view=netframework-4.8
 		/// </summary>
-		/// <param name="str"></param>
+		/// <param name="plainText">明文</param>
 		/// <param name="key"></param>
 		/// <param name="iv"></param>
 		/// <returns></returns>
-		public static string AesEncryption(string str, string key, string iv = "ABCDEFG")
+		public static string AesEncryption(string plainText, string key, string iv = "ABCDEFG")
 		{
-			if (string.IsNullOrEmpty(str))
+			if (string.IsNullOrEmpty(plainText))
 			{
 				return null;
 			}
 
-			byte[] strs = Encoding.UTF8.GetBytes(str);
+			byte[] strs = Encoding.UTF8.GetBytes(plainText);
 			byte[] keys = Encoding.UTF8.GetBytes(key);
 			byte[] ivs = Encoding.UTF8.GetBytes(iv);
 
@@ -224,20 +225,20 @@ namespace Util
 		}
 
 		/// <summary>
-		/// 
+		/// AES明文
 		/// </summary>
-		/// <param name="str"></param>
+		/// <param name="cipherText">密文</param>
 		/// <param name="key"></param>
 		/// <param name="iv"></param>
 		/// <returns></returns>
-		public static string AesDecryption(string str, string key, string iv = "ABCDEFG")
+		public static string AesDecryption(string cipherText, string key, string iv = "ABCDEFG")
 		{
-			if (string.IsNullOrEmpty(str))
+			if (string.IsNullOrEmpty(cipherText))
 			{
 				return null;
 			}
 
-			byte[] strs = Encoding.UTF8.GetBytes(str);
+			byte[] strs = Encoding.UTF8.GetBytes(cipherText);
 			byte[] keys = Encoding.UTF8.GetBytes(key);
 			byte[] ivs = Encoding.UTF8.GetBytes(iv);
 
@@ -251,6 +252,28 @@ namespace Util
 				byte[] results = aes.CreateDecryptor().TransformFinalBlock(strs, 0, strs.Length);
 				return Encoding.UTF8.GetString(results);
 			}
+
+			/*
+			using (Aes aesAlg = Aes.Create())
+			{
+				aesAlg.Key = keys;
+				aesAlg.IV = ivs;
+				aesAlg.Mode = CipherMode.CBC;
+				aesAlg.Padding = PaddingMode.PKCS7;
+				ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+				using (MemoryStream msDecrypt = new MemoryStream(strs))
+				{
+					using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+					{
+						using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+						{
+							return srDecrypt.ReadToEnd();
+						}
+					}
+
+				}
+			}
+			*/
 
 		}
 
